@@ -1,0 +1,6 @@
+{
+    "name": "ajency/file-upload",
+    "require": {
+        "intervention/image": "^2.4"
+    }
+}
