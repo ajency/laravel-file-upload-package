@@ -45,4 +45,21 @@ trait FileUpload{
         return ;
 
 	}
+
+	public function uploadFile($file,$name="",$slug="",$is_public=1){
+		$ext = $file->getClientOriginalExtension();
+
+		if (!in_array($ext, self::$formats['file'])) return false;
+		$mapping = new FileUpload_Mapping;
+        $this->media()->save($mapping);
+        $upload = new FileUpload_Files;
+        $upload->name = $name;
+        $upload->slug = $slug;
+        $upload->is_public = $is_public;
+        $upload->save();
+        $url = $upload->uploadImage($file,self::class);
+        $upload->mapping()->save($mapping);
+        $url = array();
+        return $upload->url;
+	}
 }

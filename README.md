@@ -52,7 +52,7 @@ class TableName extends Model {
 	        'y'        => 10,
 	    ];
 
-	    self::$formats = ['image' => ["jpg","png",], 'files' => ["doc","docx","pdf"]];
+	    self::$formats = ['image' => ["jpg","png",], 'file' => ["doc","docx","pdf"]];
 	}
 
 }
