@@ -15,7 +15,7 @@ class CreateMappingTable extends Migration
     {
         Schema::create('fileuploads_mapping', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('object_model');
+            $table->string('object_type');
             $table->integer('object_id');
             $table->string('file_model');
             $table->integer('file_id');

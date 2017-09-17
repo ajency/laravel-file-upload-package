@@ -18,10 +18,10 @@ class CreatePhotosTable extends Migration
             $table->timestamps();
             $table->string('name');
             $table->string('slug');
-            $table->string('url');
+            $table->string('url')->nullable();
             $table->boolean('is_public');
-            $table->integer('owner');
-            $table->string('caption');
+            $table->integer('owner')->nullable();
+            $table->string('caption')->nullable();
             $table->timestamp('deleted_at')->nullable();
             $table->integer('height')->nullable();
             $table->integer('width')->nullable();
