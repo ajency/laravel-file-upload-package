@@ -15,7 +15,7 @@ class FileUpload_Photos extends Model
     public function mapping(){
         return $this->morphMany( 'Ajency\FileUpload\models\FileUpload_Mapping', 'file');
     }
-    public function uploadImage($image,$classname,$sizes=[],$watermark=null)
+    public function uploadImage($image,$is_watermarked,$model_obj,$classname,$sizes=[],$watermark=null)
     {
 
         $imageFileName = time();
@@ -29,7 +29,7 @@ class FileUpload_Photos extends Model
 
         $img = Image::make($image->getRealPath());
         //if(isset($config['watermark']['path']) and $config['watermark']['path']!='' and $config['watermark']['path']!=null ){
-        if($watermark != null and $watermark !=''){
+        if($is_watermarked == true and $watermark != null and $watermark !=''){
             $pos = (isset($watermark['position']))? $watermark['position']: 'bottom-left';
             $x = (isset($watermark['x']))? $watermark['x']: 10;
             $y = (isset($watermark['y']))? $watermark['y']: 10;

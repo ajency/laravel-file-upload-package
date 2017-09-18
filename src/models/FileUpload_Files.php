@@ -5,7 +5,7 @@ namespace Ajency\FileUpload\Models;
 use Illuminate\Database\Eloquent\Model;
 use Ajency\FileUpload\models\FileUpload_Mapping;
 
-class FileUpload_Photos extends Model
+class FileUpload_Files extends Model
 {
     protected $table = 'fileuploads_files';
 

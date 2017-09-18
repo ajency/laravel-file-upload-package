@@ -15,9 +15,9 @@ class FileUploadServiceProvider extends ServiceProvider
     {
         
         $this->loadMigrationsFrom(__DIR__ . '/migrations');
-        $this->publishes([
-            __DIR__ . '/config/ajfileupload.php' => config_path('ajfileupload.php'),
-        ]);
+        // $this->publishes([
+        //     __DIR__ . '/config/ajfileupload.php' => config_path('ajfileupload.php'),
+        // ]);
     }
 
     /**
