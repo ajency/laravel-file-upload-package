@@ -3,7 +3,7 @@
 return [
 	'disk_name' => 's3',
 	'base_root_path' => '/',
-	'default_base_path' => '/other_files',
+	'default_base_path' => '/other_files/',
 	'valid_image_formats' => ['jpg', 'png', ],
 	'valid_file_formats' => ['doc', 'docx', 'pdf'],
 	'sizes' => [
@@ -20,7 +20,7 @@ return [
 	],
 	'model' => [
 		'App\Model_name' => [
-			'base_path' => 'model',
+			'base_path' => 'model/',
 			'slug_column' => 'slug',
 			'sizes' => ['thumb']
 		],
