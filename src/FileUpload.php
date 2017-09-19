@@ -1,63 +1,55 @@
 <?php
-
 namespace Ajency\FileUpload;
-
 use Ajency\FileUpload\models\FileUpload_Photos;
+use Ajency\FileUpload\models\FileUpload_Files;
 use Ajency\FileUpload\models\FileUpload_Mapping;
+use Ajency\FileUpload\models\FileUpload_Varients;
 use Illuminate\Database\Eloquent\Collection;
-
 trait FileUpload{
-
-	public static $size_conversion = [];
-
-    public static $watermark = null;
-
-    public static $formats = ['image'=>[],'file'=>[]];
-
 	public function media(){
 		return $this->morphMany( 'Ajency\FileUpload\models\FileUpload_Mapping', 'object');
 	}
 
-
-	public function uploadImage($image,$name="",$slug="",$is_watermarked=true,$is_public=1){
-		$ext = $image->getClientOriginalExtension();
-
-		if (!in_array($ext, self::$formats['image'])) return false;
-
-		$mapping = new FileUpload_Mapping;
-        $this->media()->save($mapping);
-
+	private function validatefile($file,$type){
+		if($type = 0) $valid = config('ajfileupload')['valid_image_formats'];
+		else $valid = config('ajfileupload')['valid_file_formats'];
+		$ext = $file->getClientOriginalExtension();
+		if (!in_array($ext, $valid)) return false;
+		return true;
+	}
+	public function uploadImage($image,$is_watermarked=true,$is_public=true,$alt='',$caption='',$name=""){
+		if($this->validateFile($image,0)) return false;
 		$upload = new FileUpload_Photos;
         $upload->name = $name;
-        $upload->slug = $slug;
+        $upload->slug = str_slug($name);
         $upload->is_public = $is_public;
-        // $upload->addMedia($image)->usingName('msalsajsa')->toMediaCollection('images');
+        $upload->alt_text = $alt;
+        $upload->caption = $caption;
         $upload->save();
-        $url = $upload->uploadImage($image,$is_watermarked,$this,self::class,self::$size_conversion,self::$watermark);
-        
-        $upload->mapping()->save($mapping);
-        $url = array();
-        foreach (self::$size_conversion as $key => $value) {
-        	$url[] = $upload->url.$key.'.'.$ext;
-        }
-        if(self::$watermark!=null) $url[] = $upload->url.'watermark.' .$ext;
+        $upload->upload($image,$this,self::class,$is_watermarked,$is_public);
         return $url;
-
 	}
-
-	public function uploadFile($file,$name="",$slug="",$is_watermarked=1,$is_public=1){
-		$ext = $file->getClientOriginalExtension();
-		if (!in_array($ext, self::$formats['file'])) return false;
-		$mapping = new FileUpload_Mapping;
+	public function mapImage($image_id){
+		$check = FileUpload_Mapping::where('file_id',$image_id)->where('file_type',FileUpload_Photos::class)->count();
+		if ($check>0) return false;
+		$image = FileUpload_Photos::find($image_id);
+        $mapping = new FileUpload_Mapping;
         $this->media()->save($mapping);
-        $upload = new FileUpload_Files;
-        $upload->name = $name;
-        $upload->slug = $slug;
-        $upload->is_public = $is_public;
-        $upload->save();
-        $url = $upload->uploadImage($file,self::class);
-        $upload->mapping()->save($mapping);
-        $url = array();
-        return $upload->url;
+        $image->mapping()->save($mapping);
+        return true;
 	}
+	public function getImages(){
+		$uploads = array();
+		$images = $this->media()->pluck('id')->toArray();
+		$images = FileUpload_Mapping::whereIn('id',$images)->get();
+		foreach ($images as $image) {
+			$uploads[$image->file_id] = array('id'=>$image->file_id);
+			$varients = FileUpload_Varients::where('photo_id',$image->file_id)->get();
+			foreach ($varients as $varient) {
+				$uploads[$image->file_id][$varient->size]=$varient->url;
+			}
+		}
+		return $uploads;
+	}
+
 }

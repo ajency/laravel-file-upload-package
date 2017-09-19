@@ -13,12 +13,14 @@ class CreateMappingTable extends Migration
      */
     public function up()
     {
-        Schema::create('fileuploads_mapping', function (Blueprint $table) {
+        Schema::create('fileupload_mapping', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('object_type');
-            $table->integer('object_id');
-            $table->string('file_model');
-            $table->integer('file_id');
+            $table->timestamps();
+            $table->string('object_type')->nullable();
+            $table->integer('object_id')->nullable();
+            $table->string('file_type')->nullable();
+            $table->integer('file_id')->nullable();
+            $table->softDeletes();
         });
     }
 
@@ -29,6 +31,6 @@ class CreateMappingTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('fileuploads_mapping');
+        Schema::dropIfExists('fileupload_mapping');
     }
 }

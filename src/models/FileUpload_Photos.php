@@ -1,59 +1,82 @@
 <?php
-
 namespace Ajency\FileUpload\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Ajency\FileUpload\models\FileUpload_Varients;
 use Ajency\FileUpload\models\FileUpload_Mapping;
 use Image;
 
 class FileUpload_Photos extends Model
 {
-    protected $table = 'fileuploads_photos';
-
-    
-
-    public function mapping(){
-        return $this->morphMany( 'Ajency\FileUpload\models\FileUpload_Mapping', 'file');
-    }
-    public function uploadImage($image,$is_watermarked,$model_obj,$classname,$sizes=[],$watermark=null)
+    use SoftDeletes;
+    protected $table = 'fileupload_photos';
+    protected $dates = ['created_at', 'updated_at', 'deleted_at'];
+    public function mapping()
     {
-
-        $imageFileName = time();
-        $s3            = \Storage::disk('s3');
-        $filePath      = $classname.'/images/' . $imageFileName;
-        $ext = $image->getClientOriginalExtension();
-
-        $resp = $s3->put($filePath. '/original.' . $ext , file_get_contents($image), 'private');
-
-        $config = config('ajfileupload');
-
-        $img = Image::make($image->getRealPath());
-        //if(isset($config['watermark']['path']) and $config['watermark']['path']!='' and $config['watermark']['path']!=null ){
-        if($is_watermarked == true and $watermark != null and $watermark !=''){
-            $pos = (isset($watermark['position']))? $watermark['position']: 'bottom-left';
-            $x = (isset($watermark['x']))? $watermark['x']: 10;
-            $y = (isset($watermark['y']))? $watermark['y']: 10;
-            $img->insert($watermark['path'], $pos, $x, $y);
-            $image = $img;
-            $water = $img->stream();
-            $resp = $s3->put($filePath. '/watermark.' . $ext, $water->__toString(), 'public');
-
-        }
-        // if (isset($config['sizes'])){
-            foreach($sizes as $key => $size){
-                $img = $image;
-                $img->resize($size['width'], $size['height'], function ($constraint) {
-                    $constraint->aspectRatio();
-                    $constraint->upsize();
-                });
-                $img = $img->stream();
-                $resp = $s3->put($filePath. '/'.$key.'.' . $ext, $img->__toString(), 'public');
-            }
-        // }
-        
-        $this->url = $s3->url($filePath);
-        $this->save();
-        // return response()->json($s3->url($filePath.'/resize.'.$image->getClientOriginalExtension()));
+        return $this->morphMany('Ajency\FileUpload\models\FileUpload_Mapping', 'file');
     }
+    public function upload($image, $obj_instance, $obj_class, $watermark, $public)
+    {
+        $config        = config('ajfileupload');
+        $imageFileName = time();
+        $disk          = \Storage::disk($config['disk_name']);
+        $ext           = $image->getClientOriginalExtension();
+        if (isset($config['model'][$obj_class])) {
+            $filepath = $config['base_root_path'] . $config['model'][$obj_class]['base_path'] . '/images/' . $imageFileName . '/' . $obj_instance[$config['model'][$obj_class]['slug_column']] . '-';
+        } else {
+            $filepath = $config['default_base_path'] . 'images/' . $imageFileName . '/image-';
+        }
 
+        $fp = $filepath . 'original.' . $ext;
+        if ($disk->put($fp, file_get_contents($image), 'private')) {
+            $this->url = $disk->url($fp);
+            $this->save();
+        } else {
+            return false;
+        }
+
+
+        if (isset($config['model'][$obj_class])) {
+            $img = Image::make($image->getRealPath());
+            foreach ($config['model'][$obj_class]['sizes'] as $size_name) {
+                if (isset($config['sizes'][$size_name])) {
+                    $new_img = $img;
+                    $new_img->resize($config['sizes'][$size_name]['width'], $config['sizes'][$size_name]['height'], function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    });
+                    if ($watermark and isset($config['sizes'][$size_name]['watermark'])) {
+                    	$path = $config['sizes'][$size_name]['watermark']['image_path'];
+                    	$pos = $config['sizes'][$size_name]['watermark']['position'];
+                        $new_img->insert($config['sizes'][$size_name]['watermark']['image_path'],
+                            $config['sizes'][$size_name]['watermark']['position'],
+                            $config['sizes'][$size_name]['watermark']['x'],
+                            $config['sizes'][$size_name]['watermark']['y']
+                        );
+                    }
+                    $new_img = $new_img->stream();
+                    $fp      = $filepath . $size_name .'.'. $ext;
+                    if ($public) {
+                    	if ($disk->put($fp, $new_img->__toString(), 'public')) {
+                            $this->save();
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        if ($disk->put($fp, $new_img->__toString(), 'private')) {
+                            $this->save();
+                        } else {
+                            return false;
+                        }
+                    }
+                    $entry = new FileUpload_Varients;
+                    $entry->photo_id = $this->id;
+                    $entry->size = $size_name;
+                    $entry->url = $disk->url($fp);
+                    $entry->save();
+                }
+            }
+        }
+    }
 }
