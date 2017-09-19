@@ -41,7 +41,7 @@ class FileUpload_Photos extends Model
             $img = Image::make($image->getRealPath());
             foreach ($config['model'][$obj_class]['sizes'] as $size_name) {
                 if (isset($config['sizes'][$size_name])) {
-                    $new_img = $img;
+                    $new_img = Image::make($image->getRealPath());
                     $new_img->resize($config['sizes'][$size_name]['width'], $config['sizes'][$size_name]['height'], function ($constraint) {
                         $constraint->aspectRatio();
                         $constraint->upsize();
