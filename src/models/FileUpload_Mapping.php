@@ -3,9 +3,9 @@ namespace Ajency\FileUpload\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class FileuploadMapping extends Model
+class FileUpload_Mapping extends Model
 {
-    protected $table = 'fileuploads_mapping';
+    protected $table = 'fileupload_mapping';
     protected $dates = [ 'created_at', 'updated_at', 'deleted_at'];
     public function object()
     {
