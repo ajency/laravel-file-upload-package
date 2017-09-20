@@ -60,13 +60,12 @@ trait FileUpload{
 
 	public function uploadFile($file,$is_public=true,$name=""){
 		if(!$this->validatefile($file,1)) return false;
-		dd('vnklxncvn');
 		$upload = new FileUpload_Files;
         $upload->name = $name;
         $upload->slug = str_slug($name);
         $upload->is_public = $is_public;
         $upload->save();
-        if($upload->upload($image,$this,self::class,$is_public)){
+        if($upload->upload($file,$this,self::class,$is_public)){
      	   return $upload->id;
     	}else{
     		return false;
