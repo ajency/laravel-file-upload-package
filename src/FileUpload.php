@@ -11,14 +11,14 @@ trait FileUpload{
 	}
 
 	private function validatefile($file,$type){
-		if($type = 0) $valid = config('ajfileupload')['valid_image_formats'];
+		if($type == 0) $valid = config('ajfileupload')['valid_image_formats'];
 		else $valid = config('ajfileupload')['valid_file_formats'];
 		$ext = $file->getClientOriginalExtension();
 		if (!in_array($ext, $valid)) return false;
 		return true;
 	}
 	public function uploadImage($image,$is_watermarked=true,$is_public=true,$alt='',$caption='',$name=""){
-		if($this->validateFile($image,0)) return false;
+		if(!$this->validatefile($image,0)) return false;
 		$upload = new FileUpload_Photos;
         $upload->name = $name;
         $upload->slug = str_slug($name);
@@ -59,7 +59,8 @@ trait FileUpload{
 
 
 	public function uploadFile($file,$is_public=true,$name=""){
-		if($this->validateFile($file,1)) return false;
+		if(!$this->validatefile($file,1)) return false;
+		dd('vnklxncvn');
 		$upload = new FileUpload_Files;
         $upload->name = $name;
         $upload->slug = str_slug($name);
