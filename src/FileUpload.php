@@ -26,8 +26,11 @@ trait FileUpload{
         $upload->alt_text = $alt;
         $upload->caption = $caption;
         $upload->save();
-        $upload->upload($image,$this,self::class,$is_watermarked,$is_public);
-        return $upload->id;
+        if($upload->upload($image,$this,self::class,$is_watermarked,$is_public)){
+     	   return $upload->id;
+    	}else{
+    		return false
+    	}
 	}
 	public function mapImage($image_id){
 		$check = FileUpload_Mapping::where('file_id',$image_id)->where('file_type',FileUpload_Photos::class)->count();

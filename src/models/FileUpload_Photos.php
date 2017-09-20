@@ -23,7 +23,7 @@ class FileUpload_Photos extends Model
         $disk          = \Storage::disk($config['disk_name']);
         $ext           = $image->getClientOriginalExtension();
         if (isset($config['model'][$obj_class])) {
-            $filepath = $config['base_root_path'] . $config['model'][$obj_class]['base_path'] . '/images/' . $imageFileName . '/' . $obj_instance[$config['model'][$obj_class]['slug_column']] . '-';
+            $filepath = $config['base_root_path'] . $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']]. '/images/' . $imageFileName . '/' . $obj_instance[$config['model'][$obj_class]['slug_column']] . '-';
         } else {
             $filepath = $config['default_base_path'] . 'images/' . $imageFileName . '/image-';
         }
@@ -78,5 +78,6 @@ class FileUpload_Photos extends Model
                 }
             }
         }
+        return true;
     }
 }
