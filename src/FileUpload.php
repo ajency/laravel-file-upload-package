@@ -41,6 +41,11 @@ trait FileUpload{
         $image->mapping()->save($mapping);
         return true;
 	}
+	public function mapImages($images){
+		foreach($images as $image){
+			$this->mapImage($image);
+		}
+	}
 	public function getImages(){
 		$uploads = array();
 		$images = $this->media()->where('file_type',FileUpload_Photos::class)->pluck('id')->toArray();
@@ -79,6 +84,11 @@ trait FileUpload{
         $this->media()->save($mapping);
         $file->mapping()->save($mapping);
         return true;
+	}
+	public function mapFiles($images){
+		foreach($files as $file){
+			$this->mapFile($file);
+		}
 	}
 	public function getFiles(){
 		$uploads = array();
