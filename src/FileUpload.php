@@ -123,9 +123,15 @@ trait FileUpload{
 		$files = FileUpload_Files::whereIn('id',$files)->get();
 		foreach ($files as $file) {
 			$uploads[$file->id] = array('id'=>$file->id);
+			$uploads[$file->id]['name'] = $file->name; 
 			$uploads[$file->id]['url'] = $file->url; 
 		}
 		return $uploads;
+	}
+	public function renameFile($file){
+		$obj = FileUpload_Files::find($file['id']);
+		$obj->name = $file->name;
+		$obj->save();
 	}
 
 }
