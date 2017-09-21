@@ -41,10 +41,23 @@ trait FileUpload{
         $image->mapping()->save($mapping);
         return true;
 	}
-	public function mapImages($images){
-		foreach($images as $image){
-			$this->mapImage($image);
+	public function unmapImage($image_id){
+		return $this->media()->where('file_type',FileUpload_Photos::class)->where('file_id',$image_id)->delete();
+	}
+	public function remapImages($images){
+		// add n remove
+		$curr_images = $this->media()->where('file_type',FileUpload_Photos::class)->pluck('file_id')->toArray();
+		$additions = array_diff($images,$curr_images);
+		$deletions = array_diff($curr_images,$images);
+		foreach($deletions as $file){
+			$this->unmapImage($file);
 		}
+		foreach($additions as $file){
+			$this->mapImage($file);
+		}
+		// foreach($images as $image){
+		// 	$this->mapImage($image);
+		// }
 	}
 	public function getImages(){
 		$uploads = array();
@@ -52,6 +65,10 @@ trait FileUpload{
 		$images = FileUpload_Mapping::whereIn('id',$images)->get();
 		foreach ($images as $image) {
 			$uploads[$image->file_id] = array('id'=>$image->file_id);
+			$details = FileUpload_photos::where('id',$image->file_id)->first();
+			$uploads[$image->file_id]['name'] = $details->name;
+			$uploads[$image->file_id]['caption'] = $details->caption;
+			$uploads[$image->file_id]['alt'] = $details->alt_text;
 			$varients = FileUpload_Varients::where('photo_id',$image->file_id)->get();
 			foreach ($varients as $varient) {
 				$uploads[$image->file_id][$varient->size]=$varient->url;
@@ -85,14 +102,24 @@ trait FileUpload{
         $file->mapping()->save($mapping);
         return true;
 	}
-	public function mapFiles($images){
-		foreach($files as $file){
+	public function unmapFile($file_id){
+		$file =$this->media()->where('file_type',FileUpload_Files::class)->where('file_id',$file_id)->delete();
+	}
+	public function remapFiles($files){
+		//add n remove
+		$curr_files = $this->media()->where('file_type',FileUpload_Files::class)->pluck('file_id')->toArray();
+		$additions = array_diff($files,$curr_files);
+		$deletions = array_diff($curr_files,$files);
+		foreach($deletions as $file){
+			$this->unmapFile($file);
+		}
+		foreach($additions as $file){
 			$this->mapFile($file);
 		}
 	}
 	public function getFiles(){
 		$uploads = array();
-		$files = $this->media()->where('file_type',FileUpload_Files::class)->pluck('id')->toArray();
+		$files = $this->media()->where('file_type',FileUpload_Files::class)->pluck('file_id')->toArray();
 		$files = FileUpload_Files::whereIn('id',$files)->get();
 		foreach ($files as $file) {
 			$uploads[$file->id] = array('id'=>$file->id);
