@@ -129,8 +129,9 @@ trait FileUpload{
 		return $uploads;
 	}
 	public function renameFile($file){
+		// dd($file);
 		$obj = FileUpload_Files::find($file['id']);
-		$obj->name = $file->name;
+		$obj->name = $file['name'];
 		$obj->save();
 	}
 
