@@ -125,6 +125,7 @@ trait FileUpload{
 			$uploads[$file->id] = array('id'=>$file->id);
 			$uploads[$file->id]['name'] = $file->name; 
 			$uploads[$file->id]['url'] = $file->url; 
+			$uploads[$file->id]['size'] = $file->size; 
 		}
 		return $uploads;
 	}

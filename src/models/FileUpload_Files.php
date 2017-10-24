@@ -35,6 +35,7 @@ class FileUpload_Files extends Model
 	            return false;
 	        }
 	    }
+        $this->size = $disk->size($filepath);
 	    $this->url = $disk->url($filepath);
         $this->save();
         return true;
