@@ -13,7 +13,7 @@ trait FileUpload{
 	private function validatefile($file,$type){
 		if($type == 0) $valid = config('ajfileupload')['valid_image_formats'];
 		else $valid = config('ajfileupload')['valid_file_formats'];
-		$ext = $file->getClientOriginalExtension();
+		$ext = strtolower($file->getClientOriginalExtension());
 		if (!in_array($ext, $valid)) return false;
 		return true;
 	}
