@@ -135,5 +135,12 @@ trait FileUpload{
 		$obj->name = $file['name'];
 		$obj->save();
 	}
+	public function getSingleFile($file_id){
+		$obj = FileUpload_Files::find($file_id);
+		if(config('ajfileupload')['disk_name'] == "s3"){
+			$path = explode('amazonaws.com/',$obj->url);
+			return \Storage::disk(config('ajfileupload')['disk_name'])->get('/'.$path[1]);
+		}
+	}
 
 }
