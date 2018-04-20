@@ -17,12 +17,11 @@ trait FileUpload{
 		if (!in_array($ext, $valid)) return false;
 		return true;
 	}
-	public function uploadImage($image,$type,$is_watermarked=true,$is_public=true,$alt='',$caption='',$name=""){
+	public function uploadImage($image,$is_watermarked=true,$is_public=true,$alt='',$caption='',$name=""){
 		if(!$this->validatefile($image,0)) return false;
 		$upload = new FileUpload_Photos;
         $upload->name = $name;
         $upload->slug = str_slug($name);
-        $upload->type = $type;
         $upload->is_public = $is_public;
         $upload->alt_text = $alt;
         $upload->caption = $caption;
@@ -33,11 +32,12 @@ trait FileUpload{
     		return false;
     	}
 	}
-	public function mapImage($image_id){
+	public function mapImage($image_id,$type){
 		$check = FileUpload_Mapping::where('file_id',$image_id)->where('file_type',FileUpload_Photos::class)->count();
 		if ($check>0) return false;
 		$image = FileUpload_Photos::find($image_id);
         $mapping = new FileUpload_Mapping;
+        $mapping->type = $type;
         $this->media()->save($mapping);
         $image->mapping()->save($mapping);
         return true;
@@ -45,9 +45,9 @@ trait FileUpload{
 	public function unmapImage($image_id){
 		return $this->media()->where('file_type',FileUpload_Photos::class)->where('file_id',$image_id)->delete();
 	}
-	public function remapImages($images){
+	public function remapImages($images,$type){
 		// add n remove
-		$curr_images = $this->media()->where('file_type',FileUpload_Photos::class)->pluck('file_id')->toArray();
+		$curr_images = $this->media()->where('file_type',FileUpload_Photos::class)->where('type',$type)->pluck('file_id')->toArray();
 		$additions = array_diff($images,$curr_images);
 		$deletions = array_diff($curr_images,$images);
 		foreach($deletions as $file){
@@ -62,11 +62,11 @@ trait FileUpload{
 	}
 	public function getImages($type){
 		$uploads = array();
-		$images = $this->media()->where('file_type',FileUpload_Photos::class)->pluck('id')->toArray();
+		$images = $this->media()->where('file_type',FileUpload_Photos::class)->where('type',$type)->pluck('id')->toArray();
 		$images = FileUpload_Mapping::whereIn('id',$images)->get();
 		foreach ($images as $image) {
 			$uploads[$image->file_id] = array('id'=>$image->file_id);
-			$details = FileUpload_photos::where('id',$image->file_id)->where('type',$type)->first();
+			$details = FileUpload_photos::where('id',$image->file_id)->first();
 			if(!empty($details)){
 				$uploads[$image->file_id]['name'] = $details->name;
 				$uploads[$image->file_id]['caption'] = $details->caption;
@@ -83,12 +83,11 @@ trait FileUpload{
 
 
 
-	public function uploadFile($file,$type,$is_public=true,$name=""){
+	public function uploadFile($file,$is_public=true,$name=""){
 		if(!$this->validatefile($file,1)) return false;
 		$upload = new FileUpload_Files;
         $upload->name = $name;
         $upload->slug = str_slug($name);
-        $upload->type = $type;
         $upload->is_public = $is_public;
         $upload->save();
         if($upload->upload($file,$this,self::class,$is_public)){
@@ -97,11 +96,12 @@ trait FileUpload{
     		return false;
     	}
 	}
-	public function mapFile($file_id){
+	public function mapFile($file_id,$type){
 		$check = FileUpload_Mapping::where('file_id',$file_id)->where('file_type',FileUpload_Files::class)->count();
 		if ($check>0) return false;
 		$file = FileUpload_Files::find($file_id);
         $mapping = new FileUpload_Mapping;
+        $mapping->type = $type;
         $this->media()->save($mapping);
         $file->mapping()->save($mapping);
         return true;
@@ -109,9 +109,9 @@ trait FileUpload{
 	public function unmapFile($file_id){
 		$file =$this->media()->where('file_type',FileUpload_Files::class)->where('file_id',$file_id)->delete();
 	}
-	public function remapFiles($files){
+	public function remapFiles($files,$type){
 		//add n remove
-		$curr_files = $this->media()->where('file_type',FileUpload_Files::class)->pluck('file_id')->toArray();
+		$curr_files = $this->media()->where('file_type',FileUpload_Files::class)->where('type',$type)->pluck('file_id')->toArray();
 		$additions = array_diff($files,$curr_files);
 		$deletions = array_diff($curr_files,$files);
 		foreach($deletions as $file){
@@ -123,8 +123,8 @@ trait FileUpload{
 	}
 	public function getFiles($type){
 		$uploads = array();
-		$files = $this->media()->where('file_type',FileUpload_Files::class)->pluck('file_id')->toArray();
-		$files = FileUpload_Files::whereIn('id',$files)->where('type',$type)->get();
+		$files = $this->media()->where('file_type',FileUpload_Files::class)->where('type',$type)->pluck('file_id')->toArray();
+		$files = FileUpload_Files::whereIn('id',$files)->get();
 		if(!empty($files)){
 			foreach ($files as $file) {
 				$uploads[$file->id] = array('id'=>$file->id);

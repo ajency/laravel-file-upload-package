@@ -20,6 +20,7 @@ class CreateMappingTable extends Migration
             $table->integer('object_id')->nullable();
             $table->string('file_type')->nullable();
             $table->integer('file_id')->nullable();
+            $table->string('type');
             $table->softDeletes();
         });
     }
