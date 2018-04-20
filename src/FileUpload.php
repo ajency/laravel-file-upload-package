@@ -67,12 +67,14 @@ trait FileUpload{
 		foreach ($images as $image) {
 			$uploads[$image->file_id] = array('id'=>$image->file_id);
 			$details = FileUpload_photos::where('id',$image->file_id)->where('type',$type)->first();
-			$uploads[$image->file_id]['name'] = $details->name;
-			$uploads[$image->file_id]['caption'] = $details->caption;
-			$uploads[$image->file_id]['alt'] = $details->alt_text;
-			$varients = FileUpload_Varients::where('photo_id',$image->file_id)->get();
-			foreach ($varients as $varient) {
-				$uploads[$image->file_id][$varient->size]=$varient->url;
+			if(!empty($details)){
+				$uploads[$image->file_id]['name'] = $details->name;
+				$uploads[$image->file_id]['caption'] = $details->caption;
+				$uploads[$image->file_id]['alt'] = $details->alt_text;
+				$varients = FileUpload_Varients::where('photo_id',$image->file_id)->get();
+				foreach ($varients as $varient) {
+					$uploads[$image->file_id][$varient->size]=$varient->url;
+				}
 			}
 		}
 		return $uploads;
@@ -123,11 +125,13 @@ trait FileUpload{
 		$uploads = array();
 		$files = $this->media()->where('file_type',FileUpload_Files::class)->pluck('file_id')->toArray();
 		$files = FileUpload_Files::whereIn('id',$files)->where('type',$type)->get();
-		foreach ($files as $file) {
-			$uploads[$file->id] = array('id'=>$file->id);
-			$uploads[$file->id]['name'] = $file->name; 
-			$uploads[$file->id]['url'] = $file->url; 
-			$uploads[$file->id]['size'] = $file->size; 
+		if(!empty($files)){
+			foreach ($files as $file) {
+				$uploads[$file->id] = array('id'=>$file->id);
+				$uploads[$file->id]['name'] = $file->name; 
+				$uploads[$file->id]['url'] = $file->url; 
+				$uploads[$file->id]['size'] = $file->size; 
+			}
 		}
 		return $uploads;
 	}
