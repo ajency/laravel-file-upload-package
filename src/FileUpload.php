@@ -54,7 +54,7 @@ trait FileUpload{
 			$this->unmapImage($file);
 		}
 		foreach($additions as $file){
-			$this->mapImage($file);
+			$this->mapImage($file,$type);
 		}
 		// foreach($images as $image){
 		// 	$this->mapImage($image);
@@ -118,7 +118,7 @@ trait FileUpload{
 			$this->unmapFile($file);
 		}
 		foreach($additions as $file){
-			$this->mapFile($file);
+			$this->mapFile($file,$type);
 		}
 	}
 	public function getFiles($type){
