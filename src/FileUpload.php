@@ -17,7 +17,7 @@ trait FileUpload{
 		if (!in_array($ext, $valid)) return false;
 		return true;
 	}
-	public function uploadImage($image,$is_watermarked=true,$is_public=true,$alt='',$caption='',$name=""){
+	public function uploadImage($image,$type,$is_watermarked=true,$is_public=true,$alt='',$caption='',$name=""){
 		if(!$this->validatefile($image,0)) return false;
 		$upload = new FileUpload_Photos;
         $upload->name = $name;
@@ -26,7 +26,7 @@ trait FileUpload{
         $upload->alt_text = $alt;
         $upload->caption = $caption;
         $upload->save();
-        if($upload->upload($image,$this,self::class,$is_watermarked,$is_public)){
+        if($upload->upload($image,$type,$this,self::class,$is_watermarked,$is_public)){
      	   return $upload->id;
     	}else{
     		return false;

@@ -16,7 +16,7 @@ class FileUpload_Photos extends Model
     {
         return $this->morphMany('Ajency\FileUpload\models\FileUpload_Mapping', 'file');
     }
-    public function upload($image, $obj_instance, $obj_class, $watermark, $public)
+    public function upload($image,$type, $obj_instance, $obj_class, $watermark, $public)
     {
         $config        = config('ajfileupload');
         $imageFileName = time();
@@ -39,7 +39,7 @@ class FileUpload_Photos extends Model
 
         if (isset($config['model'][$obj_class])) {
             $img = Image::make($image->getRealPath());
-            foreach ($config['model'][$obj_class]['sizes'] as $size_name) {
+            foreach ($config['model'][$obj_class]['sizes'][$type] as $size_name) {
                 if (isset($config['sizes'][$size_name])) {
                     $new_img = Image::make($image->getRealPath());
                     $new_img->resize($config['sizes'][$size_name]['width'], $config['sizes'][$size_name]['height'], function ($constraint) {
