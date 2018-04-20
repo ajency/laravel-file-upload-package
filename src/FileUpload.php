@@ -17,11 +17,12 @@ trait FileUpload{
 		if (!in_array($ext, $valid)) return false;
 		return true;
 	}
-	public function uploadImage($image,$is_watermarked=true,$is_public=true,$alt='',$caption='',$name=""){
+	public function uploadImage($image,$type,$is_watermarked=true,$is_public=true,$alt='',$caption='',$name=""){
 		if(!$this->validatefile($image,0)) return false;
 		$upload = new FileUpload_Photos;
         $upload->name = $name;
         $upload->slug = str_slug($name);
+        $upload->type = $type;
         $upload->is_public = $is_public;
         $upload->alt_text = $alt;
         $upload->caption = $caption;
@@ -59,13 +60,13 @@ trait FileUpload{
 		// 	$this->mapImage($image);
 		// }
 	}
-	public function getImages(){
+	public function getImages($type){
 		$uploads = array();
 		$images = $this->media()->where('file_type',FileUpload_Photos::class)->pluck('id')->toArray();
 		$images = FileUpload_Mapping::whereIn('id',$images)->get();
 		foreach ($images as $image) {
 			$uploads[$image->file_id] = array('id'=>$image->file_id);
-			$details = FileUpload_photos::where('id',$image->file_id)->first();
+			$details = FileUpload_photos::where('id',$image->file_id)->where('type',$type)->first();
 			$uploads[$image->file_id]['name'] = $details->name;
 			$uploads[$image->file_id]['caption'] = $details->caption;
 			$uploads[$image->file_id]['alt'] = $details->alt_text;
@@ -80,11 +81,12 @@ trait FileUpload{
 
 
 
-	public function uploadFile($file,$is_public=true,$name=""){
+	public function uploadFile($file,$type,$is_public=true,$name=""){
 		if(!$this->validatefile($file,1)) return false;
 		$upload = new FileUpload_Files;
         $upload->name = $name;
         $upload->slug = str_slug($name);
+        $upload->type = $type;
         $upload->is_public = $is_public;
         $upload->save();
         if($upload->upload($file,$this,self::class,$is_public)){
@@ -117,10 +119,10 @@ trait FileUpload{
 			$this->mapFile($file);
 		}
 	}
-	public function getFiles(){
+	public function getFiles($type){
 		$uploads = array();
 		$files = $this->media()->where('file_type',FileUpload_Files::class)->pluck('file_id')->toArray();
-		$files = FileUpload_Files::whereIn('id',$files)->get();
+		$files = FileUpload_Files::whereIn('id',$files)->where('type',$type)->get();
 		foreach ($files as $file) {
 			$uploads[$file->id] = array('id'=>$file->id);
 			$uploads[$file->id]['name'] = $file->name; 

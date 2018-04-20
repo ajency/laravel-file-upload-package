@@ -17,6 +17,7 @@ class CreatePhotosTable extends Migration
             $table->increments('id');
             $table->timestamps();
             $table->string('name');
+            $table->string('type');
             $table->string('slug');
             $table->string('url')->nullable();
             $table->boolean('is_public');
