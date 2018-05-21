@@ -135,6 +135,20 @@ trait FileUpload{
 		}
 		return $uploads;
 	}
+	public function getAllFilesByType(){
+		$uploads = array();
+		$files = $this->media()->where('file_type',FileUpload_Files::class)->pluck('file_id')->toArray();
+		$files = FileUpload_Files::whereIn('id',$files)->get();
+		if(!empty($files)){
+			foreach ($files as $file) {
+				$uploads[$file->type] = array('id'=>$file->id);
+				$uploads[$file->type]['name'] = $file->name; 
+				$uploads[$file->type]['url'] = $file->url; 
+				$uploads[$file->type]['size'] = $file->size; 
+			}
+		}
+		return $uploads;
+	}
 	public function renameFile($file){
 		// dd($file);
 		$obj = FileUpload_Files::find($file['id']);
