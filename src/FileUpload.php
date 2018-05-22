@@ -137,14 +137,15 @@ trait FileUpload{
 	}
 	public function getAllFilesByType(){
 		$uploads = array();
-		$files = $this->media()->where('file_type',FileUpload_Files::class)->pluck('file_id')->toArray();
-		$files = FileUpload_Files::whereIn('id',$files)->get();
+		$files = $this->media()->where('file_type',FileUpload_Files::class)->get(); 
 		if(!empty($files)){
 			foreach ($files as $file) {
-				$uploads[$file->type] = array('id'=>$file->id);
-				$uploads[$file->type]['name'] = $file->name; 
-				$uploads[$file->type]['url'] = $file->url; 
-				$uploads[$file->type]['size'] = $file->size; 
+				$fileObj = FileUpload_Files::find($file->file_id);
+
+				$uploads[$file->type] = array('id'=>$fileObj->id);
+				$uploads[$file->type]['name'] = $fileObj->name; 
+				$uploads[$file->type]['url'] = $fileObj->url; 
+				$uploads[$file->type]['size'] = $fileObj->size; 
 			}
 		}
 		return $uploads;
