@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Ajency\FileUpload\models\FileUpload_Varients;
 use Ajency\FileUpload\models\FileUpload_Mapping;
 use Image;
-
 class FileUpload_Photos extends Model
 {
     use SoftDeletes;
@@ -16,12 +15,18 @@ class FileUpload_Photos extends Model
     {
         return $this->morphMany('Ajency\FileUpload\models\FileUpload_Mapping', 'file');
     }
-    public function upload($image,$type, $obj_instance, $obj_class, $watermark, $public)
+    public function upload($image,$type, $obj_instance, $obj_class, $watermark, $public,$base64_file,$base64_file_ext)
     {
         $config        = config('ajfileupload');
         $imageFileName = time();
+
         $disk          = \Storage::disk($config['disk_name']);
-        $ext           = $image->getClientOriginalExtension();
+        $ext           = ($base64_file_ext == "")?$image->getClientOriginalExtension():$base64_file_ext;
+        if($base64_file != "")
+            $image = $base64_file;
+        \Log::debug("disk_name==".$config['disk_name']);
+        \Log::debug("obj_class==".$obj_class);
+        \Log::debug("obj_instance==".$obj_instance);
         if (isset($config['model'][$obj_class])) {
             $filepath = $config['base_root_path'] . $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']]. '/images/' . $imageFileName . '/' . $obj_instance[$config['model'][$obj_class]['slug_column']] . '-';
         } else {
@@ -29,6 +34,7 @@ class FileUpload_Photos extends Model
         }
 
         $fp = $filepath . 'original.' . $ext;
+        \Log::debug("fp==".$fp);
         if ($disk->put($fp, file_get_contents($image), 'private')) {
             $this->url = $disk->url($fp);
             $this->save();
@@ -37,7 +43,7 @@ class FileUpload_Photos extends Model
         }
 
 
-        if (isset($config['model'][$obj_class])) {
+        if (isset($config['model'][$obj_class]) && $base64_file =="") {
             $img = Image::make($image->getRealPath());
             foreach ($config['model'][$obj_class]['sizes'][$type] as $size_name) {
                 if (isset($config['sizes'][$size_name])) {

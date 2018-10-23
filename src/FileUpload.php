@@ -17,16 +17,24 @@ trait FileUpload{
 		if (!in_array($ext, $valid)) return false;
 		return true;
 	}
-	public function uploadImage($image,$type,$is_watermarked=true,$is_public=true,$alt='',$caption='',$name=""){
-		if(!$this->validatefile($image,0)) return false;
+	public function uploadImage($image,$type,$is_watermarked=true,$is_public=true,$alt='',$caption='',$name="",$base64_file="",$base64_file_ext=""){
+		\Log::debug("uploadImage===");
+		if($base64_file =="")
+			if(!$this->validatefile($image,0)) 
+				return false;
 		$upload = new FileUpload_Photos;
         $upload->name = $name;
         $upload->slug = str_slug($name);
         $upload->is_public = $is_public;
         $upload->alt_text = $alt;
         $upload->caption = $caption;
+        if($base64_file !=""){
+        	$upload->image_size = json_encode(["original"]);
+        	$image_size = getimagesize($base64_file);
+        	$upload->dimensions = json_encode(["original_width" => $image_size[0],"original_height" => $image_size[1]]);
+        }
         $upload->save();
-        if($upload->upload($image,$type,$this,self::class,$is_watermarked,$is_public)){
+        if($upload->upload($image,$type,$this,$this->class,$is_watermarked,$is_public,$base64_file,$base64_file_ext)){
      	   return $upload->id;
     	}else{
     		return false;
