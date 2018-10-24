@@ -17,7 +17,7 @@ trait FileUpload{
 		if (!in_array($ext, $valid)) return false;
 		return true;
 	}
-	public function uploadImage($image,$type,$is_watermarked=true,$is_public=true,$alt='',$caption='',$name="",$base64_file="",$base64_file_ext=""){
+	public function uploadImage($image,$type,$is_watermarked=true,$is_public=true,$alt='',$caption='',$name="",$base64_file="",$base64_file_ext="",$imageName="",$attributes=[]){
 		\Log::debug("uploadImage===");
 		if($base64_file =="")
 			if(!$this->validatefile($image,0)) 
@@ -32,14 +32,23 @@ trait FileUpload{
         	$upload->image_size = json_encode(["original"]);
         	$image_size = getimagesize($base64_file);
         	$upload->dimensions = json_encode(["original_width" => $image_size[0],"original_height" => $image_size[1]]);
+        	$upload->photo_attributes =json_encode($attributes);
         }
         $upload->save();
-        if($upload->upload($image,$type,$this,$this->class,$is_watermarked,$is_public,$base64_file,$base64_file_ext)){
+        if($upload->upload($image,$type,$this,get_class($this),$is_watermarked,$is_public,$base64_file,$base64_file_ext,$imageName)){
      	   return $upload->id;
     	}else{
     		return false;
     	}
 	}
+
+	public function unmapAllImages(){
+		$map_images = FileUpload_Mapping::where([['object_type',get_class($this)],['object_id',$this->id],['file_type',FileUpload_Photos::class]])->select('file_id')->get();
+		foreach($map_images as $map_image){
+			$this->unmapImage($map_image["file_id"]);
+		}
+	}
+
 	public function mapImage($image_id,$type){
 		$check = FileUpload_Mapping::where('file_id',$image_id)->where('file_type',FileUpload_Photos::class)->count();
 		if ($check>0) return false;

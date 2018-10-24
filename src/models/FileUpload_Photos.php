@@ -15,7 +15,7 @@ class FileUpload_Photos extends Model
     {
         return $this->morphMany('Ajency\FileUpload\models\FileUpload_Mapping', 'file');
     }
-    public function upload($image,$type, $obj_instance, $obj_class, $watermark, $public,$base64_file,$base64_file_ext)
+    public function upload($image,$type, $obj_instance, $obj_class, $watermark, $public,$base64_file,$base64_file_ext,$imageName)
     {
         $config        = config('ajfileupload');
         $imageFileName = time();
@@ -27,13 +27,22 @@ class FileUpload_Photos extends Model
         \Log::debug("disk_name==".$config['disk_name']);
         \Log::debug("obj_class==".$obj_class);
         \Log::debug("obj_instance==".$obj_instance);
+        \Log::debug("isset==".isset($config['model'][$obj_class]));
         if (isset($config['model'][$obj_class])) {
-            $filepath = $config['base_root_path'] . $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']]. '/images/' . $imageFileName . '/' . $obj_instance[$config['model'][$obj_class]['slug_column']] . '-';
+            if($imageName == "")
+                $filepath = $config['base_root_path'] . $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']]. '/images/' . $imageFileName . '/' . $obj_instance[$config['model'][$obj_class]['slug_column']] . '-';
+            else
+                $filepath = $config['base_root_path'] . $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']]. '/images/';
         } else {
-            $filepath = $config['default_base_path'] . 'images/' . $imageFileName . '/image-';
+            if($imageName == "")
+                $filepath = $config['default_base_path'] . 'images/' . $imageFileName . '/image-';
+            else
+                $filepath = $config['default_base_path'] . 'images/';
         }
-
-        $fp = $filepath . 'original.' . $ext;
+        if($imageName == "")
+            $fp = $filepath . 'original.' . $ext;
+        else
+            $fp = $filepath . $imageName. ".". $ext;
         \Log::debug("fp==".$fp);
         if ($disk->put($fp, file_get_contents($image), 'private')) {
             $this->url = $disk->url($fp);
