@@ -16,7 +16,7 @@ class UpdatePhotosTable extends Migration
         Schema::table('fileupload_photos', function (Blueprint $table) {
             $table->json('dimensions')->nullable();
             $table->json('image_size')->nullable();
-            $table->json('attributes')->nullable();
+            $table->json('photo_attributes')->nullable();
         });
     }
 
@@ -30,7 +30,7 @@ class UpdatePhotosTable extends Migration
         Schema::table('fileupload_photos', function (Blueprint $table) {
             $table->dropColumn('dimensions');
             $table->dropColumn('image_size');
-            $table->dropColumn('attributes');
+            $table->dropColumn('photo_attributes');
         });
     }
 }

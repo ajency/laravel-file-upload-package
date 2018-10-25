@@ -5,6 +5,7 @@ use Ajency\FileUpload\models\FileUpload_Files;
 use Ajency\FileUpload\models\FileUpload_Mapping;
 use Ajency\FileUpload\models\FileUpload_Varients;
 use Illuminate\Database\Eloquent\Collection;
+use DB;
 trait FileUpload{
 	public function media(){
 		return $this->morphMany( 'Ajency\FileUpload\models\FileUpload_Mapping', 'object');
@@ -30,7 +31,6 @@ trait FileUpload{
         $upload->caption = $caption;
         if($base64_file !=""){
         	$upload->image_size = json_encode(["original"]);
-        	$image_size = getimagesize($base64_file);
         	$upload->dimensions = json_encode(["original_width" => $image_size[0],"original_height" => $image_size[1]]);
         	$upload->photo_attributes =json_encode($attributes);
         }
@@ -167,18 +167,63 @@ trait FileUpload{
 		}
 		return $uploads;
 	}
+
 	public function renameFile($file){
 		// dd($file);
 		$obj = FileUpload_Files::find($file['id']);
 		$obj->name = $file['name'];
 		$obj->save();
 	}
+
 	public function getSingleFile($file_id){
 		$obj = FileUpload_Files::find($file_id);
 		if(config('ajfileupload')['disk_name'] == "s3"){
 			$path = explode('amazonaws.com/',$obj->url);
 			return \Storage::disk(config('ajfileupload')['disk_name'])->get('/'.$path[1]);
 		}
+	}
+
+	public function getSingleImage($presets,$depth){
+		$map_image = FileUpload_Mapping::where([['object_type',get_class($this)],['object_id',$this->id],['file_type',FileUpload_Photos::class]])->first();	
+		// print_r($map_image);exit;
+		// dd(DB::getQueryLog());
+		// dd($map_image->file);
+		$config        = config('ajfileupload');
+		if($map_image == null) return false;
+		if(config('ajfileupload')['disk_name'] == "s3"){
+			$map_image_size = json_decode($map_image->file->image_size,true);
+			// dd($map_image->image_size);
+			if($map_image_size == null) return false;
+			$image_size = ($presets == "original")?$presets:($presets."$$".$depth);
+			echo "map_image_size===";
+			print_r($map_image_size);
+			echo "image_size===";
+			print_r($image_size);
+			// dd("exit");
+			if(in_array($image_size,$map_image_size)){
+				$obj_instance = $this;
+				$obj_class = get_class($this);
+				if($presets == "original"){
+					$newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/', $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$presets.'/', $map_image->file->url);
+				}
+				else{
+					$newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/', $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$presets.'/', $map_image->file->url);
+				}
+				
+				return $newfilepath;
+			}
+			else
+				return false;
+			// $path = explode('amazonaws.com/',$map_image->file->url);
+			
+			// return \Storage::disk(config('ajfileupload')['disk_name'])->get('/'.$path[1]);
+		}
+	}
+
+	public function resizeImages($presets,$depth,$filename){
+		echo "enters resizeImages";
+		$filePhotoObj = FileUpload_Mapping::where([['object_type',get_class($this)],['object_id',$this->id],['file_type',FileUpload_Photos::class]])->first();
+		return $filePhotoObj->file->generateResizedImages($this->id,$presets,$depth,get_class($this),$this,$filename);
 	}
 
 }

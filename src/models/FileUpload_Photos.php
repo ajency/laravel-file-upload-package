@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Ajency\FileUpload\models\FileUpload_Varients;
 use Ajency\FileUpload\models\FileUpload_Mapping;
 use Image;
+use Carbon\Carbon;
+
 class FileUpload_Photos extends Model
 {
     use SoftDeletes;
@@ -32,12 +34,12 @@ class FileUpload_Photos extends Model
             if($imageName == "")
                 $filepath = $config['base_root_path'] . $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']]. '/images/' . $imageFileName . '/' . $obj_instance[$config['model'][$obj_class]['slug_column']] . '-';
             else
-                $filepath = $config['base_root_path'] . $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']]. '/images/';
+                $filepath = $config['base_root_path'] . $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']]. '/';
         } else {
             if($imageName == "")
                 $filepath = $config['default_base_path'] . 'images/' . $imageFileName . '/image-';
             else
-                $filepath = $config['default_base_path'] . 'images/';
+                $filepath = $config['default_base_path'];
         }
         if($imageName == "")
             $fp = $filepath . 'original.' . $ext;
@@ -94,5 +96,79 @@ class FileUpload_Photos extends Model
             }
         }
         return true;
+    }
+
+    public function generateResizedImages($object_id,$presets,$depth,$obj_class,$obj_instance,$filename){
+        // $filepath = $this->url;
+        $config        = config('ajfileupload');
+        $disk          = \Storage::disk($config['disk_name']);
+        $path = explode('amazonaws.com/',$this->url);
+        // $filepath = \Storage::disk('s3')->temporaryUrl( $this->url, \Carbon::now()->addMinutes(5) );
+        $command = $disk->getDriver()->getAdapter()->getClient()->getCommand('GetObject', [
+            'Bucket'                     => \Config::get('filesystems.disks.s3.bucket'),
+            'Key'                        => $path[1],
+            //'ResponseContentDisposition' => 'attachment;'//for download
+        ]);
+        $filepath =  $disk->getDriver()->getAdapter()->getClient()->createPresignedRequest($command, '+10 minutes')->getUri();
+        echo "filepath===".$filepath;
+        
+        // echo "path===".$path[1]."<br/>";
+        // $filepath = $path[1];
+        // $files = \Storage::disk($config['disk_name'])->allFiles();
+        // foreach($files as $file){
+        //     echo "file===".$file;
+        // }
+        // dd("exit");
+        // echo $filepath."<br/><br/>";
+        
+        $extarr = explode(".", $filepath);
+        $ext = (count($extarr)>1)?$extarr[1]:"jpg";
+        
+        $image_size = ($presets == "original")?$presets:($presets."$$".$depth);
+        if($this->image_size != null){
+            $image_size_arr = json_decode($this->image_size,true);
+            if(is_array($image_size_arr))
+                array_push($image_size_arr, $image_size);
+        }
+        else {
+            $image_size_arr = [$image_size];
+        }
+        $this->image_size = json_encode($image_size_arr);
+        if($presets == "original"){
+            $nfilepath = explode("?", $filepath)[0];
+            $newfilepath = $config['base_root_path'] . $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']]. '/'.$presets.'/' .$filename;
+            $newfilepathfullurl = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/', $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$presets.'/', $this->url);
+            if($disk->put($newfilepath, file_get_contents($filepath), 'public')) {
+                $this->save();
+                return $newfilepathfullurl;
+            } else {
+                return false;
+            }
+        }
+        
+
+        // $config_dimensions = $config['presets'][$presets][$depth];
+        // $dimensions_arr = explode("X", $config_dimensions);
+        // $width = $dimensions_arr[0];
+        // $height = $dimensions_arr[1];
+        // $img = Image::make($filepath);
+        
+        
+
+        // $new_img = Image::make($filepath);
+        // $new_img->resize($width, $height, function ($constraint) {
+        //     $constraint->aspectRatio();
+        //     $constraint->upsize();
+        // });
+        // $new_img = $new_img->stream();
+
+        // $fp      = $filepath . $width.'X'.$height.'.'. $ext;
+        // if ($disk->put($fp, $new_img->__toString(), 'public')) {
+        //     echo "image added at = ".$fp;
+        //     $this->save();
+        // } else {
+        //     return false;
+        // }
+
     }
 }
