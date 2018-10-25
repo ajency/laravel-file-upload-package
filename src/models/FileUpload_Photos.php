@@ -145,30 +145,30 @@ class FileUpload_Photos extends Model
                 return false;
             }
         }
+        else{
+            $config_dimensions = $config['presets'][$presets][$depth];
+            $dimensions_arr = explode("X", $config_dimensions);
+            $width = $dimensions_arr[0];
+            $height = $dimensions_arr[1];
+            $new_img = Image::make(file_get_contents($filepath));
+            $new_img->resize($width, $height, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            });
+            $new_img = $new_img->stream();
+
+            $fp      = $config['base_root_path'] . $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']]. '/'.$presets.'/' .$depth.'/'.$filename;
+            if ($disk->put($fp, $new_img->__toString(), 'public')) {
+                $this->save();
+                $newfilepathfullurl = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/', $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$presets.'/' .$depth.'/', $this->url);
+                return $newfilepathfullurl;
+            } else {
+                return false;
+            }
+
+        }
         
 
-        // $config_dimensions = $config['presets'][$presets][$depth];
-        // $dimensions_arr = explode("X", $config_dimensions);
-        // $width = $dimensions_arr[0];
-        // $height = $dimensions_arr[1];
-        // $img = Image::make($filepath);
-        
-        
-
-        // $new_img = Image::make($filepath);
-        // $new_img->resize($width, $height, function ($constraint) {
-        //     $constraint->aspectRatio();
-        //     $constraint->upsize();
-        // });
-        // $new_img = $new_img->stream();
-
-        // $fp      = $filepath . $width.'X'.$height.'.'. $ext;
-        // if ($disk->put($fp, $new_img->__toString(), 'public')) {
-        //     echo "image added at = ".$fp;
-        //     $this->save();
-        // } else {
-        //     return false;
-        // }
 
     }
 }
