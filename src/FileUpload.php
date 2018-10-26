@@ -31,6 +31,7 @@ trait FileUpload{
         $upload->caption = $caption;
         if($base64_file !=""){
         	$upload->image_size = json_encode(["original"]);
+        	$image_size = getimagesize($base64_file);
         	$upload->dimensions = json_encode(["original_width" => $image_size[0],"original_height" => $image_size[1]]);
         	$upload->photo_attributes =json_encode($attributes);
         }
