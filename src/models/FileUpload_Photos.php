@@ -45,10 +45,11 @@ class FileUpload_Photos extends Model
             $fp = $filepath . 'original.' . $ext;
         else
             $fp = $filepath . $imageName. ".". $ext;
-        \Log::debug("fp==".$fp);
+        
         if ($disk->put($fp, file_get_contents($image), 'private')) {
             $this->url = $disk->url($fp);
             $this->save();
+            \Log::debug("fp==".$fp);
         } else {
             return false;
         }

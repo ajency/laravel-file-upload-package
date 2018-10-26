@@ -11,6 +11,10 @@ trait FileUpload{
 		return $this->morphMany( 'Ajency\FileUpload\models\FileUpload_Mapping', 'object');
 	}
 
+	public function photos(){
+		return $this->morphMany( 'Ajency\FileUpload\models\FileUpload_Mapping', 'object')->where('file_type',FileUpload_Photos::class);
+	}
+
 	private function validatefile($file,$type){
 		if($type == 0) $valid = config('ajfileupload')['valid_image_formats'];
 		else $valid = config('ajfileupload')['valid_file_formats'];
@@ -214,14 +218,14 @@ trait FileUpload{
 	}
 
 	function getDefaultImage($presets) {
-		return $this->media()->where([['file_type',FileUpload_Files::class],['type','default']])->first()->returnPresetUrls($presets,get_class($this),$this); 
+		return $this->photos()->where('type','default')->first()->file->returnPresetUrls($presets,get_class($this),$this); 
 	}
 
 	function getAllImages($presets) {
-		$files = $this->media()->where('file_type',FileUpload_Files::class)->get(); 
+		$files = $this->photos; 
 		$allImages=[];
 		foreach($files as $file) {
-			$imagedata = $file->returnPresetUrls($presets,get_class($this),$this); 
+			$imagedata = $file->file->returnPresetUrls($presets,get_class($this),$this); 
 			array_push($allImages, $imagedata);
 		}
 		return $allImages;
