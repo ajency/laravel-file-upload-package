@@ -218,7 +218,9 @@ trait FileUpload{
 	}
 
 	function getDefaultImage($presets) {
-		return $this->photos()->where('type','default')->first()->file->returnPresetUrls($presets,get_class($this),$this); 
+		$photos = $this->photos()->where('type','default')->first();
+		if($photos == null) return [];
+		else return $photos->file->returnPresetUrls($presets,get_class($this),$this); 
 	}
 
 	function getAllImages($presets) {
