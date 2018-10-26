@@ -171,4 +171,27 @@ class FileUpload_Photos extends Model
 
 
     }
+
+    public function returnPresetUrls($presets,$obj_class,$obj_instance){
+        $resp = [];
+        $config        = config('ajfileupload');
+        foreach($presets as $preset){       
+            foreach($config['presets'] as $cpreset => $cdepths){
+                echo "cpreset=".$cpreset."<br/>";
+                if(in_array($cpreset, $presets)){
+                    $cdepth_data = [];
+                    foreach($cdepths as $cdepth => $csizes){
+                        $newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/', $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$cpreset.'/'.$cdepth.'/', $this->url);
+                        $cdepth_data[$cdepth] = $newfilepath;
+                    }
+                    if($cpreset == "original"){
+                        $newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/', $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$cpreset.'/', $this->url);
+                        $cdepth_data[$cdepth] = $newfilepath;
+                    }
+                    $resp[$cpreset] = $cdepth_data;
+                }
+            }
+        }
+        return $resp;
+    }
 }

@@ -183,24 +183,23 @@ trait FileUpload{
 		}
 	}
 
-	public function getSingleImage($presets,$depth){
-		$map_image = FileUpload_Mapping::where([['object_type',get_class($this)],['object_id',$this->id],['file_type',FileUpload_Photos::class]])->first();	
+	public function getSingleImage($file_id,$presets,$depth){
+		$file = FileUpload_Photos::find($file_id);
 		$config        = config('ajfileupload');
-		if($map_image == null) return false;
+		if($file == null) return false;
 		if(config('ajfileupload')['disk_name'] == "s3"){
-			$map_image_size = json_decode($map_image->file->image_size,true);
+			$map_image_size = json_decode($file->image_size,true);
 			if($map_image_size == null) return false;
 			$image_size = ($presets == "original")?$presets:($presets."$$".$depth);
 			if(in_array($image_size,$map_image_size)){
 				$obj_instance = $this;
 				$obj_class = get_class($this);
 				if($presets == "original"){
-					$newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/', $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$presets.'/', $map_image->file->url);
+					$newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/', $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$presets.'/', $file->url);
 				}
 				else{
-					$newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/', $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$presets.'/'.$depth.'/', $map_image->file->url);
+					$newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/', $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$presets.'/'.$depth.'/', $file->url);
 				}
-				
 				return $newfilepath;
 			}
 			else
@@ -208,36 +207,23 @@ trait FileUpload{
 		}
 	}
 
-	public function resizeImages($presets,$depth,$filename){
-		echo "enters resizeImages";
-		$filePhotoObj = FileUpload_Mapping::where([['object_type',get_class($this)],['object_id',$this->id],['file_type',FileUpload_Photos::class]])->first();
-		return $filePhotoObj->file->generateResizedImages($this->id,$presets,$depth,get_class($this),$this,$filename);
+	public function resizeImages($file_id,$presets,$depth,$filename){
+		$file = FileUpload_Photos::find($file_id);
+		return $file->generateResizedImages($this->id,$presets,$depth,get_class($this),$this,$filename);
 	}
 
-	public function getThumbnails($presets){
-		$resp = [];
-		$filePhotoObj = FileUpload_Mapping::where([['object_type',get_class($this)],['object_id',$this->id],['file_type',FileUpload_Photos::class]])->first();
-		$config        = config('ajfileupload');
-		$obj_instance = $this;
-		$obj_class = get_class($this);
-		foreach($presets as $preset){		
-			foreach($config['presets'] as $cpreset => $cdepths){
-				echo "cpreset=".$cpreset."<br/>";
-				if(in_array($cpreset, $presets)){
-					$cdepth_data = [];
-					foreach($cdepths as $cdepth => $csizes){
-						$newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/', $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$cpreset.'/'.$cdepth.'/', $filePhotoObj->file->url);
-						$cdepth_data[$cdepth] = $newfilepath;
-					}
-					if($cpreset == "original"){
-						$newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/', $config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$cpreset.'/', $filePhotoObj->file->url);
-						$cdepth_data[$cdepth] = $newfilepath;
-					}
-					$resp[$cpreset] = $cdepth_data;
-				}
-			}
+	function getDefaultImage($presets) {
+		return $this->media()->where([['file_type',FileUpload_Files::class],['type','default']])->first()->returnPresetUrls($presets,get_class($this),$this); 
+	}
+
+	function getAllImages($presets) {
+		$files = $this->media()->where('file_type',FileUpload_Files::class)->get(); 
+		$allImages=[];
+		foreach($files as $file) {
+			$imagedata = $file->returnPresetUrls($presets,get_class($this),$this); 
+			array_push($allImages, $imagedata);
 		}
-		return $resp;
+		return $allImages;
 	}
 
 }
