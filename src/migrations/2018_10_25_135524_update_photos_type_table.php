@@ -12,7 +12,7 @@ class UpdatePhotosTypeTable extends Migration
     public function up()
     {
         Schema::table('fileupload_photos', function (Blueprint $table) {
-            $table->string('type');
+            $table->string('type')->default('default');
         });
     }
     /**
