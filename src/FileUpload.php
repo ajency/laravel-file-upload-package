@@ -233,4 +233,20 @@ trait FileUpload{
 		return $allImages;
 	}
 
+	public function getImage($photo_id, $preset, $depth, $filename)
+	{	
+		$imageurl     = "";
+        $file         = $this->getSingleImage($photo_id,$preset, $depth);
+        if ($file) {
+            $imageurl = $file;
+        } else {
+            $imageurl = $this->resizeImages($photo_id,$preset, $depth, $filename);
+        }
+        if(config('ajfileupload.use_cdn') && config('ajfileupload.cdn_url') ){
+            $tempUrl = parse_url($imageurl);
+            $imageurl =  config('ajfileupload.cdn_url') . $tempUrl['path'];
+        }
+     	return $imageurl;
+    }
+
 }
