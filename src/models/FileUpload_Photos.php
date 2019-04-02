@@ -186,19 +186,19 @@ class FileUpload_Photos extends Model
                         
                         // $newfilepath = url('/'.$config['model'][$obj_class]['base_path'].'/'.$this->id.'/'.$cpreset.'/'.$cdepth.'/',]);
 
-                        $newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/',$config['model'][$obj_class]['base_path'].'/'.$this->id.'/'.$cpreset.'/'.$cdepth.'/', $path[1]);
+                        $newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/',$config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$cpreset.'/'.$cdepth.'/', $path[1]);
                         if($config['use_cdn'] && $config['cdn_url'] ){
                             $tempUrl = parse_url($newfilepath);
-                            $newfilepath =  $config['cdn_url'] . $tempUrl['path'];
+                            $newfilepath =  $config['cdn_url'] .'/'. $tempUrl['path'];
                         }
                         // echo "newfilepath=".$newfilepath;
                         $cdepth_data[$cdepth] = url($newfilepath);
                     }
                     if($cpreset == "original"){
-                        $newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/',$config['model'][$obj_class]['base_path'].'/'.$this->id.'/'.$cpreset.'/', $path[1]);
+                        $newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/',$config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$cpreset.'/', $path[1]);
                         if($config['use_cdn'] && $config['cdn_url'] ){
                             $tempUrl = parse_url($newfilepath);
-                            $newfilepath =  $config['cdn_url'] . $tempUrl['path'];
+                            $newfilepath =  $config['cdn_url'] .'/'. $tempUrl['path'];
                         }
                         $resp[$cpreset] = url($newfilepath);
                     }
