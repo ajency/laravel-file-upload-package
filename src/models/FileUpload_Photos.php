@@ -176,29 +176,44 @@ class FileUpload_Photos extends Model
     public function returnPresetUrls($presets,$obj_class,$obj_instance){
         $resp = [];
         $config        = config('ajfileupload');
+        $map_image_size = json_decode($this->image_size,true);
+        if($map_image_size == null) return false;          
         foreach($presets as $preset){       
             foreach($config['presets'] as $cpreset => $cdepths){
+
                 // echo "cpreset=".$cpreset."<br/>";
                 if(in_array($cpreset, $presets)){
                     $cdepth_data = [];
                     $path = explode('amazonaws.com/',$this->url);
                     foreach($cdepths as $cdepth => $csizes){
-                        
+                        $image_size = ($cpreset == "original")?$cpreset:($cpreset."$$".$cdepth);
                         // $newfilepath = url('/'.$config['model'][$obj_class]['base_path'].'/'.$this->id.'/'.$cpreset.'/'.$cdepth.'/',]);
 
-                        $newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/',$config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$cpreset.'/'.$cdepth.'/', $path[1]);
-                        if($config['use_cdn'] && $config['cdn_url'] ){
-                            $tempUrl = parse_url($newfilepath);
-                            $newfilepath =  $config['cdn_url'] .'/'. $tempUrl['path'];
+                        if(in_array($image_size,$map_image_size)){
+                            $newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/',$config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$cpreset.'/'.$cdepth.'/', $path[1]);
+                            if($config['use_cdn'] && $config['cdn_url'] ){
+                                $tempUrl = parse_url($newfilepath);
+                                $newfilepath =  $config['cdn_url'] .'/'. $tempUrl['path'];
+                            }
+                        }
+                        else{
+                            $newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/',$config['model'][$obj_class]['base_path'].'/'.$this->id.'/'.$cpreset.'/'.$cdepth.'/', $path[1]);
                         }
                         // echo "newfilepath=".$newfilepath;
                         $cdepth_data[$cdepth] = url($newfilepath);
                     }
                     if($cpreset == "original"){
-                        $newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/',$config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$cpreset.'/', $path[1]);
-                        if($config['use_cdn'] && $config['cdn_url'] ){
-                            $tempUrl = parse_url($newfilepath);
-                            $newfilepath =  $config['cdn_url'] .'/'. $tempUrl['path'];
+                        $image_size = $cpreset;
+
+                        if(in_array($image_size,$map_image_size)){
+                            $newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/',$config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/'.$cpreset.'/', $path[1]);
+                            if($config['use_cdn'] && $config['cdn_url'] ){
+                                $tempUrl = parse_url($newfilepath);
+                                $newfilepath =  $config['cdn_url'] .'/'. $tempUrl['path'];
+                            }
+                        }
+                        else{
+                            $newfilepath = str_replace($config['model'][$obj_class]['base_path'].'/'.$obj_instance[$config['model'][$obj_class]['slug_column']].'/',$config['model'][$obj_class]['base_path'].'/'.$this->id.'/'.$cpreset.'/', $path[1]);
                         }
                         $resp[$cpreset] = url($newfilepath);
                     }
