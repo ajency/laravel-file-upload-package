@@ -106,7 +106,7 @@ class FileUpload_Photos extends Model
         $path = explode('amazonaws.com/',$this->url);
         // $filepath = \Storage::disk('s3')->temporaryUrl( $this->url, \Carbon::now()->addMinutes(5) );
         $command = $disk->getDriver()->getAdapter()->getClient()->getCommand('GetObject', [
-            'Bucket'                     => \Config::get('filesystems.disks.s3.bucket'),
+            'Bucket'                     => config('filesystems.disks.s3.bucket'),
             'Key'                        => $path[1],
             //'ResponseContentDisposition' => 'attachment;'//for download
         ]);
